@@ -67,4 +67,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/source/flockfile.c
     ${CMAKE_CURRENT_SOURCE_DIR}/source/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/ptmplays.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/smdh.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/titlenames.cpp
 )
