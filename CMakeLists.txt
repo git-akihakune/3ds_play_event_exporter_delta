@@ -7,6 +7,33 @@ if(CATNIP)
     return()
 endif()
 
+option(BUILD_HOST_TESTS "Build host-side unit tests" OFF)
+if(BUILD_HOST_TESTS)
+    project(play_event_exporter_host_tests LANGUAGES CXX)
+    enable_testing()
+
+    add_executable(test_smdh
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/host/test_smdh.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/smdh.cpp
+    )
+    target_include_directories(test_smdh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/source)
+    target_compile_features(test_smdh PRIVATE cxx_std_23)
+    target_compile_options(test_smdh PRIVATE -Wall -Wextra -Werror)
+    add_test(NAME smdh COMMAND test_smdh)
+
+    add_executable(test_titlenames
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/host/test_titlenames.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/titlenames.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/smdh.cpp
+    )
+    target_include_directories(test_titlenames PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/source)
+    target_compile_features(test_titlenames PRIVATE cxx_std_23)
+    target_compile_options(test_titlenames PRIVATE -Wall -Wextra -Werror)
+    add_test(NAME titlenames COMMAND test_titlenames)
+
+    return()
+endif()
+
 # Declare project and use gnu++23 (actually gnu++26) and gnu23
 project(play_event_exporter LANGUAGES C CXX ASM)
 add_executable(${PROJECT_NAME})

@@ -124,3 +124,13 @@ This application uses CMake with the default 3DS toolchain file provided by devk
 ```bash
 catnip build
 ```
+
+## Host-side tests
+
+The SMDH parser and title-name resolver fallback can be built and tested on a regular host toolchain with CTest:
+
+```bash
+cmake -S . -B build/host-tests -G Ninja -DBUILD_HOST_TESTS=ON
+cmake --build build/host-tests
+ctest --test-dir build/host-tests --output-on-failure
+```
