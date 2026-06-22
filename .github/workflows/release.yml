@@ -53,17 +53,17 @@ jobs:
 
       - name: Package release artifacts
         run: |
-          mkdir -p dist/package/3ds/play_event_exporter
-          cp build/3ds-official/play_event_exporter.release/play_event_exporter.3dsx dist/play_event_exporter.3dsx
-          cp build/3ds-official/play_event_exporter.release/play_event_exporter.smdh dist/play_event_exporter.smdh
-          cp build/3ds-official/play_event_exporter.release/play_event_exporter.3dsx dist/package/3ds/play_event_exporter/play_event_exporter.3dsx
+          mkdir -p dist/package/3ds/play_event_exporter_delta
+          cp build/3ds-official/play_event_exporter_delta.release/play_event_exporter_delta.3dsx dist/play_event_exporter_delta.3dsx
+          cp build/3ds-official/play_event_exporter_delta.release/play_event_exporter_delta.smdh dist/play_event_exporter_delta.smdh
+          cp build/3ds-official/play_event_exporter_delta.release/play_event_exporter_delta.3dsx dist/package/3ds/play_event_exporter_delta/play_event_exporter_delta.3dsx
           cp README.md LICENSE dist/package/
           python3 - <<'PYZIP'
           from pathlib import Path
           import zipfile
 
           root = Path('dist/package')
-          with zipfile.ZipFile('dist/play_event_exporter.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
+          with zipfile.ZipFile('dist/play_event_exporter_delta.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
               for path in sorted(root.rglob('*')):
                   if path.is_file():
                       zf.write(path, path.relative_to(root).as_posix())
@@ -72,11 +72,11 @@ jobs:
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: play-event-exporter-release
+          name: play-event-exporter-delta-release
           path: |
-            dist/play_event_exporter.3dsx
-            dist/play_event_exporter.smdh
-            dist/play_event_exporter.zip
+            dist/play_event_exporter_delta.3dsx
+            dist/play_event_exporter_delta.smdh
+            dist/play_event_exporter_delta.zip
 
   github-release:
     name: Publish GitHub release
@@ -88,7 +88,7 @@ jobs:
       - name: Download release artifacts
         uses: actions/download-artifact@v4
         with:
-          name: play-event-exporter-release
+          name: play-event-exporter-delta-release
           path: dist
 
       - name: Create release
@@ -99,9 +99,9 @@ jobs:
           short_sha="${GITHUB_SHA::7}"
           tag="main-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}-${short_sha}"
           gh release create "$tag" \
-            dist/play_event_exporter.3dsx \
-            dist/play_event_exporter.smdh \
-            dist/play_event_exporter.zip \
+            dist/play_event_exporter_delta.3dsx \
+            dist/play_event_exporter_delta.smdh \
+            dist/play_event_exporter_delta.zip \
             --target "$GITHUB_SHA" \
             --title "Main build ${GITHUB_RUN_NUMBER}" \
             --notes "Automated build from main at ${GITHUB_SHA}."

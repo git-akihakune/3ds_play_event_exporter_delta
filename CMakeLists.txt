@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 include(FetchContent)
 
 if(CATNIP)
-    catnip_package(play_event_exporter DEFAULT release)
+    catnip_package(play_event_exporter_delta DEFAULT release)
     catnip_add_preset(release TOOLSET 3ds BUILD_TYPE Release)
     return()
 endif()
@@ -44,7 +44,7 @@ if(BUILD_HOST_TESTS)
 endif()
 
 # Declare project and use gnu++23 (actually gnu++26) and gnu23
-project(play_event_exporter LANGUAGES C CXX ASM)
+project(play_event_exporter_delta LANGUAGES C CXX ASM)
 add_executable(${PROJECT_NAME})
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 23
