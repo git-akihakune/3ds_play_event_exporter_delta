@@ -2,17 +2,17 @@
 #include <fmt/chrono.h>
 #include <3ds.h>
 
-#include <cerrno>
 #include <chrono>
 #include <cstdint>
-#include <cstdio>
-#include <cstring>
 #include <string>
 #include <vector>
 
 extern "C" {
     #include "ptmplays.h"
 }
+
+#include "outputlog.h"
+#include "titlenames.h"
 
 namespace {
 
@@ -78,17 +78,27 @@ namespace {
         return fmt::format("({:016X})", titleId);
     }
 
-    void AppendStandardEvent(fmt::memory_buffer &buffer, const PtmPlayEvent &event) {
+    std::string FormatTitleName(u64 titleId, const TitleNameResolver &names) {
+        if (titleId == PTM_INVALID_TITLE_ID) {
+            return "(invalid TitleId)";
+        }
+
+        const std::string name = ResolveTitleName(names, titleId);
+        const std::string fallbackId = fmt::format("{:016X}", titleId);
+        return name == fallbackId ? FormatTitleId(titleId) : name;
+    }
+
+    void AppendStandardEvent(fmt::memory_buffer &buffer, const PtmPlayEvent &event, const TitleNameResolver &names) {
         const std::string timestamp = FormatTimestamp(event.minutesSince2000);
         const u64 tid = ptmGetPlayEventTitleId(event);
-        const std::string titleId = FormatTitleId(tid);
+        const std::string titleName = FormatTitleName(tid, names);
 
         switch (event.type) {
             case PTMPLAYEVENT_APPLICATION_LAUNCH: {
                 if (tid == PTM_INVALID_TITLE_ID) {
                     fmt::format_to(std::back_inserter(buffer), "{}: DSi application start\n", timestamp);
                 } else {
-                    fmt::format_to(std::back_inserter(buffer), "{}: Application launch {}\n", timestamp, titleId);
+                    fmt::format_to(std::back_inserter(buffer), "{}: Application launch {}\n", timestamp, titleName);
                 }
                 break;
             }
@@ -96,27 +106,27 @@ namespace {
                 if (tid == PTM_INVALID_TITLE_ID) {
                     fmt::format_to(std::back_inserter(buffer), "{}: DSi application exit\n", timestamp);
                 } else {
-                    fmt::format_to(std::back_inserter(buffer), "{}: Application exit {}\n", timestamp, titleId);
+                    fmt::format_to(std::back_inserter(buffer), "{}: Application exit {}\n", timestamp, titleName);
                 }
                 break;
             }
             case PTMPLAYEVENT_APPLET_LAUNCH:
-                fmt::format_to(std::back_inserter(buffer), "{}: Applet launch {}\n", timestamp, titleId);
+                fmt::format_to(std::back_inserter(buffer), "{}: Applet launch {}\n", timestamp, titleName);
                 break;
             case PTMPLAYEVENT_APPLET_EXIT:
-                fmt::format_to(std::back_inserter(buffer), "{}: Applet exit {}\n", timestamp, titleId);
+                fmt::format_to(std::back_inserter(buffer), "{}: Applet exit {}\n", timestamp, titleName);
                 break;
             case PTMPLAYEVENT_JUMP_TO_APPLICATION:
-                fmt::format_to(std::back_inserter(buffer), "{}: Jump to application {}\n", timestamp, titleId);
+                fmt::format_to(std::back_inserter(buffer), "{}: Jump to application {}\n", timestamp, titleName);
                 break;
             case PTMPLAYEVENT_LEAVE_APPLICATION:
-                fmt::format_to(std::back_inserter(buffer), "{}: Leave application {}\n", timestamp, titleId);
+                fmt::format_to(std::back_inserter(buffer), "{}: Leave application {}\n", timestamp, titleName);
                 break;
             case PTMPLAYEVENT_JUMP_TO_APPLET:
-                fmt::format_to(std::back_inserter(buffer), "{}: Jump to applet {}\n", timestamp, titleId);
+                fmt::format_to(std::back_inserter(buffer), "{}: Jump to applet {}\n", timestamp, titleName);
                 break;
             case PTMPLAYEVENT_LEAVE_APPLET:
-                fmt::format_to(std::back_inserter(buffer), "{}: Leave applet {}\n", timestamp, titleId);
+                fmt::format_to(std::back_inserter(buffer), "{}: Leave applet {}\n", timestamp, titleName);
                 break;
             case PTMPLAYEVENT_SHELL_CLOSE:
                 fmt::format_to(std::back_inserter(buffer), "{}: Shell close\n", timestamp);
@@ -134,7 +144,7 @@ namespace {
         }
     }
 
-    void ExportEvents(const std::vector<PtmPlayEvent> &events) {
+    void ExportEvents(const std::vector<PtmPlayEvent> &events, const TitleNameResolver &names) {
         fmt::memory_buffer buffer{};
 
         for (size_t i = 0; i < events.size(); ++i) {
@@ -162,27 +172,14 @@ namespace {
                 continue;
             }
 
-            AppendStandardEvent(buffer, event);
+            AppendStandardEvent(buffer, event, names);
         }
 
-        auto fcloser = [](FILE *f) noexcept { std::fclose(f); };
-
-        std::unique_ptr<FILE, decltype(fcloser)> output{std::fopen("sdmc:/play_events.log", "w+")};
-        if (!output) {
-            fmt::print("Failed to open sdmc:/play_events.log: {}\n", std::strerror(errno));
+        if (!WriteLog(std::string_view{buffer.data(), buffer.size()})) {
             return;
         }
 
-        const auto written = std::fwrite(buffer.data(), 1, buffer.size(), output.get());
-
-        if (written != buffer.size()) {
-            fmt::print("Failed to write all data to sdmc:/play_events.log ({} of {} bytes)\n",
-                written,
-                buffer.size());
-            return;
-        }
-
-        fmt::print("Exported {} events to sdmc:/play_events.log\n", events.size());
+        fmt::print("Exported {} events to sdmc:{}\n", events.size(), OutputLogPath());
     }
 }
 
@@ -191,7 +188,8 @@ int main() {
     consoleInit(GFX_TOP, NULL);
 
     std::vector<PtmPlayEvent> events = GetPlayEvents();
-    ExportEvents(events);
+    TitleNameResolver titleNames = BuildTitleNameResolver();
+    ExportEvents(events, titleNames);
 
     // Main loop
     while (aptMainLoop()) {

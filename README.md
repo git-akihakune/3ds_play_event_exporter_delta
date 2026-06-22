@@ -1,14 +1,14 @@
 # play_event_exporter
 
-(c) 2025 TuxSH.
+(c) 2025 TuxSH - Aki Hakune.
 
 Licensed under the ISC License.
 
 ## Description
 
-Exports "Play History" (on-device telemetry) to a text file on the SD card.
+Exports "Play History" (on-device telemetry) with title names to a text file on the SD card.
 
-As it turns out, the 3DS's OS logs a lot more than what it shown in Activity Log. Example output of this program:
+As it turns out, the 3DS's OS logs a lot more than what it shown in Activity Log. Known title names are exported when available; unresolved titles remain as hexadecimal title IDs. Example output of this program:
 
 ```log
 2015-01-11 04:41: System shutdown
@@ -123,4 +123,14 @@ This application uses CMake with the default 3DS toolchain file provided by devk
 
 ```bash
 catnip build
+```
+
+## Host-side tests
+
+The SMDH parser and title-name resolver fallback can be built and tested on a regular host toolchain with CTest:
+
+```bash
+cmake -S . -B build/host-tests -G Ninja -DBUILD_HOST_TESTS=ON
+cmake --build build/host-tests
+ctest --test-dir build/host-tests --output-on-failure
 ```
