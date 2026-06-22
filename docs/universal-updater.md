@@ -7,7 +7,7 @@ Universal Updater uses Universal-DB as its default UniStore. To publish this for
 1. Merge this branch to `main` and wait for the `Build and release` workflow to publish a GitHub Release.
 2. Download the release asset `play_event_exporter.3dsx` from that release.
 3. Test that exact release artifact on real 3DS hardware:
-   - The Homebrew Launcher entry is named `PlayEvent Exporter Aki`.
+   - The Homebrew Launcher entry is named `PlayEvent Exporter Delta`.
    - The author line is `(c) 2025 TuxSH - Aki Hakune`.
    - The icon is distinct from the original build.
    - Running the app does not crash.
@@ -17,12 +17,12 @@ Universal Updater uses Universal-DB as its default UniStore. To publish this for
 
 ## Universal-DB Entry
 
-Create `source/apps/play-event-exporter-aki.json` in a fork of `Universal-Team/db` and open a pull request. Replace `OWNER` with the final GitHub owner or organization:
+Create `source/apps/play-event-exporter-delta.json` in a fork of `Universal-Team/db` and open a pull request. Replace `OWNER` with the final GitHub owner or organization:
 
 ```json
 {
 	"github": "OWNER/3ds_play_event_exporter",
-	"title": "PlayEvent Exporter Aki",
+	"title": "PlayEvent Exporter Delta",
 	"systems": [
 		"3DS"
 	],

@@ -60,7 +60,7 @@ dkp_target_generate_symbol_list(${PROJECT_NAME})
 
 # Targets
 ctr_generate_smdh(${PROJECT_NAME}.smdh
-    NAME "PlayEvent Exporter Aki"
+    NAME "PlayEvent Exporter Delta"
     DESCRIPTION "Exports PlayEvent history with title names"
     AUTHOR "(c) 2025 TuxSH - Aki Hakune"
     ICON "${CMAKE_CURRENT_SOURCE_DIR}/resources/icon.png"
