@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -18,6 +19,83 @@ std::string FormatHexTitleId(std::uint64_t titleId) {
         titleId >>= 4;
     }
     return out;
+}
+
+struct KnownTitleName {
+    std::uint32_t titleHigh;
+    std::uint32_t titleLow;
+    std::string_view name;
+};
+
+constexpr KnownTitleName kKnownSystemApplets[] = {
+    {0x00040030u, 0x00008202u, "HOME Menu"},
+    {0x00040030u, 0x00008F02u, "HOME Menu"},
+    {0x00040030u, 0x00009802u, "HOME Menu"},
+    {0x00040030u, 0x0000A102u, "HOME Menu"},
+    {0x00040030u, 0x0000A902u, "HOME Menu"},
+    {0x00040030u, 0x0000B102u, "HOME Menu"},
+
+    {0x00040030u, 0x00008602u, "Instruction Manual"},
+    {0x00040030u, 0x00009202u, "Instruction Manual"},
+    {0x00040030u, 0x00009B02u, "Instruction Manual"},
+    {0x00040030u, 0x0000A402u, "Instruction Manual"},
+    {0x00040030u, 0x0000AC02u, "Instruction Manual"},
+    {0x00040030u, 0x0000B402u, "Instruction Manual"},
+
+    {0x00040030u, 0x00008702u, "Game Notes"},
+    {0x00040030u, 0x00009302u, "Game Notes"},
+    {0x00040030u, 0x00009C02u, "Game Notes"},
+    {0x00040030u, 0x0000A502u, "Game Notes"},
+    {0x00040030u, 0x0000AD02u, "Game Notes"},
+    {0x00040030u, 0x0000B502u, "Game Notes"},
+
+    {0x00040030u, 0x00008802u, "Internet Browser"},
+    {0x00040030u, 0x00009402u, "Internet Browser"},
+    {0x00040030u, 0x00009D02u, "Internet Browser"},
+    {0x00040030u, 0x0000A602u, "Internet Browser"},
+    {0x00040030u, 0x0000AE02u, "Internet Browser"},
+    {0x00040030u, 0x0000B602u, "Internet Browser"},
+    {0x00040030u, 0x20008802u, "Internet Browser"},
+    {0x00040030u, 0x20009402u, "Internet Browser"},
+    {0x00040030u, 0x20009D02u, "Internet Browser"},
+    {0x00040030u, 0x2000AE02u, "Internet Browser"},
+
+    {0x00040030u, 0x00008D02u, "Friend List"},
+    {0x00040030u, 0x00009602u, "Friend List"},
+    {0x00040030u, 0x00009F02u, "Friend List"},
+    {0x00040030u, 0x0000A702u, "Friend List"},
+    {0x00040030u, 0x0000AF02u, "Friend List"},
+    {0x00040030u, 0x0000B702u, "Friend List"},
+
+    {0x00040030u, 0x00008E02u, "Notifications"},
+    {0x00040030u, 0x00009702u, "Notifications"},
+    {0x00040030u, 0x0000A002u, "Notifications"},
+    {0x00040030u, 0x0000A802u, "Notifications"},
+    {0x00040030u, 0x0000B002u, "Notifications"},
+    {0x00040030u, 0x0000B802u, "Notifications"},
+
+    {0x00040030u, 0x0000BC02u, "Miiverse"},
+    {0x00040030u, 0x0000BD02u, "Miiverse"},
+    {0x00040030u, 0x0000BE02u, "Miiverse"},
+
+    {0x00040030u, 0x00009502u, "amiibo Settings"},
+    {0x00040030u, 0x00009E02u, "amiibo Settings"},
+    {0x00040030u, 0x0000B902u, "amiibo Settings"},
+    {0x00040030u, 0x00008C02u, "amiibo Settings"},
+    {0x00040030u, 0x0000BF02u, "amiibo Settings"},
+};
+
+std::string_view FindKnownSystemTitleName(std::uint64_t titleId) {
+    const auto titleHigh = static_cast<std::uint32_t>(titleId >> 32);
+    const auto titleLow = static_cast<std::uint32_t>(titleId & 0xFFFFFFFFu);
+
+    for (const KnownTitleName &known : kKnownSystemApplets) {
+        if (known.titleHigh == titleHigh && known.titleLow == titleLow) {
+            return known.name;
+        }
+    }
+
+    return {};
 }
 
 } // namespace
@@ -148,6 +226,10 @@ std::string ResolveTitleName(const TitleNameResolver &resolver, std::uint64_t ti
     const auto it = resolver.byId.find(titleId);
     if (it != resolver.byId.end()) {
         return it->second;
+    }
+
+    if (const std::string_view knownName = FindKnownSystemTitleName(titleId); !knownName.empty()) {
+        return std::string{knownName};
     }
 
     return FormatHexTitleId(titleId);
