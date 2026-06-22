@@ -31,6 +31,15 @@ if(BUILD_HOST_TESTS)
     target_compile_options(test_titlenames PRIVATE -Wall -Wextra -Werror)
     add_test(NAME titlenames COMMAND test_titlenames)
 
+    add_executable(test_outputlog
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/host/test_outputlog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/outputlog.cpp
+    )
+    target_include_directories(test_outputlog PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/source)
+    target_compile_features(test_outputlog PRIVATE cxx_std_23)
+    target_compile_options(test_outputlog PRIVATE -Wall -Wextra -Werror)
+    add_test(NAME outputlog COMMAND test_outputlog)
+
     return()
 endif()
 
@@ -93,6 +102,7 @@ target_compile_options(${PROJECT_NAME} PUBLIC
 target_sources(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/source/flockfile.c
     ${CMAKE_CURRENT_SOURCE_DIR}/source/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/outputlog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/ptmplays.c
     ${CMAKE_CURRENT_SOURCE_DIR}/source/smdh.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/titlenames.cpp

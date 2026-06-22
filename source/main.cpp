@@ -2,12 +2,8 @@
 #include <fmt/chrono.h>
 #include <3ds.h>
 
-#include <cerrno>
 #include <chrono>
 #include <cstdint>
-#include <cstdio>
-#include <cstring>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -15,6 +11,7 @@ extern "C" {
     #include "ptmplays.h"
 }
 
+#include "outputlog.h"
 #include "titlenames.h"
 
 namespace {
@@ -178,24 +175,11 @@ namespace {
             AppendStandardEvent(buffer, event, names);
         }
 
-        auto fcloser = [](FILE *f) noexcept { std::fclose(f); };
-
-        std::unique_ptr<FILE, decltype(fcloser)> output{std::fopen("sdmc:/play_events.log", "w+")};
-        if (!output) {
-            fmt::print("Failed to open sdmc:/play_events.log: {}\n", std::strerror(errno));
+        if (!WriteLog(std::string_view{buffer.data(), buffer.size()})) {
             return;
         }
 
-        const auto written = std::fwrite(buffer.data(), 1, buffer.size(), output.get());
-
-        if (written != buffer.size()) {
-            fmt::print("Failed to write all data to sdmc:/play_events.log ({} of {} bytes)\n",
-                written,
-                buffer.size());
-            return;
-        }
-
-        fmt::print("Exported {} events to sdmc:/play_events.log\n", events.size());
+        fmt::print("Exported {} events to sdmc:{}\n", events.size(), OutputLogPath());
     }
 }
 
